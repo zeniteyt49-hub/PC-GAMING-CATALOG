@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PC Gaming Catalog Ultime</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+/* Styles identiques à la version précédente, pas besoin de changer */
+body { font-family: Arial, sans-serif; margin:0; padding:0; transition: background 0.3s,color 0.3s; }
+body.light { background:#f4f4f4; color:#222; }
+body.dark { background:#121212; color:#f4f4f4; }
+/* ... le reste des styles (header, nav, table, hover, etc.) ... */
+</style>
+</head>
+<body>
+<header>PC Gaming Catalog Ultime</header>
+<nav>
+<a href="#cpu">CPU</a>
+<a href="#gpu">GPU</a>
+<a href="#ram">RAM</a>
+<a href="#comparateur">Comparateur</a>
+</nav>
+
+<section>
+<input type="text" id="searchInput" placeholder="🔍 Rechercher un composant..." onkeyup="searchTable()">
+</section>
+
+<!-- CPU Section -->
+<section id="cpu">
+<h2>🧠 CPU</h2>
+<table id="tableCPU">
+<tr><th>Nom</th><th>Marque</th><th>Image</th><th>Prix (€)</th><th>FPS 1080p</th><th>Comparer</th></tr>
+<tr><td>Intel Core i9‑14900K</td><td>Intel</td><td><img src="images/cpu-i9-14900k.png"></td><td>650</td><td>200</td><td><input type="checkbox" class="compareItem" data-name="Intel i9‑14900K" data-price="650" data-stat="FPS 1080p: 200"></td></tr>
+<tr><td>AMD Ryzen 9 7950X</td><td>AMD</td><td><img src="images/cpu-ryzen9-7950x.png"></td><td>600</td><td>195</td><td><input type="checkbox" class="compareItem" data-name="Ryzen 9 7950X" data-price="600" data-stat="FPS 1080p: 195"></td></tr>
+</table>
+<canvas id="cpuChart"></canvas>
+</section>
+
+<!-- GPU Section -->
+<section id="gpu">
+<h2>🎮 GPU</h2>
+<table id="tableGPU">
+<tr><th>Nom</th><th>Marque</th><th>Image</th><th>Prix (€)</th><th>FPS 1440p</th><th>Comparer</th></tr>
+<tr><td>NVIDIA RTX 4090</td><td>NVIDIA</td><td><img src="images/gpu-rtx4090.png"></td><td>1900</td><td>220</td><td><input type="checkbox" class="compareItem" data-name="RTX 4090" data-price="1900" data-stat="FPS 1440p: 220"></td></tr>
+<tr><td>AMD RX 7900 XTX</td><td>AMD</td><td><img src="images/gpu-rx7900xtx.png"></td><td>1000</td><td>200</td><td><input type="checkbox" class="compareItem" data-name="RX 7900 XTX" data-price="1000" data-stat="FPS 1440p: 200"></td></tr>
+</table>
+<canvas id="gpuChart"></canvas>
+</section>
+
+<!-- RAM Section -->
+<section id="ram">
+<h2>🧩 RAM</h2>
+<table id="tableRAM">
+<tr><th>Nom</th><th>Capacité</th><th>Vitesse (MHz)</th><th>Prix (€)</th><th>Comparer</th></tr>
+<tr><td>Corsair Vengeance LPX</td><td>32 Go (2x16)</td><td>3600</td><td>120</td><td><input type="checkbox" class="compareItem" data-name="Corsair Vengeance LPX" data-price="120" data-stat="3600 MHz"></td></tr>
+<tr><td>G.Skill Trident Z5</td><td>32 Go (2x16)</td><td>6000</td><td>150</td><td><input type="checkbox" class="compareItem" data-name="G.Skill Trident Z5" data-price="150" data-stat="6000 MHz"></td></tr>
+</table>
+<canvas id="ramChart"></canvas>
+</section>
+
+<!-- Comparateur -->
+<section id="comparateur">
+<h2>⚔️ Comparateur Visuel</h2>
+<button onclick="compareSelected()">Comparer les composants sélectionnés</button>
+<div id="compareContainer"></div>
+<button onclick="exportPDF()">Exporter PDF</button>
+</section>
+
+<footer>&copy; 2026 Catalogue PC Gaming • Prix indicatifs</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+// Recherche
+function searchTable(){let text=document.getElementById("searchInput").value.toLowerCase();document.querySelectorAll("table").forEach(table=>{table.querySelectorAll("tr").forEach((row,i)=>{if(i===0) return;let show=false;row.querySelectorAll("td").forEach(td=>{if(td.innerText.toLowerCase().includes(text)) show=true;});row.style.display=show?"":"";});});}
+
+// Comparateur
+function compareSelected(){const container=document.getElementById("compareContainer");container.innerHTML="";const selected=document.querySelectorAll(".compareItem:checked");if(selected.length===0){container.innerHTML="<p>Aucun composant sélectionné</p>";return;}selected.forEach(item=>{let box=document.createElement("div");box.className="compareBox";box.innerHTML=`<h3>${item.dataset.name}</h3><p>Prix: ${item.dataset.price} €</p><p>Stat: ${item.dataset.stat}</p>`;container.appendChild(box);});}
+
+// Export PDF
+function exportPDF(){const { jsPDF } = window.jspdf;const doc = new jsPDF();doc.text("Catalogue PC Gaming - Composants Comparés", 10, 10);let y=20;document.querySelectorAll(".compareBox").forEach(box=>{doc.text(box.innerText,10,y);y+=10;});doc.save("Comparateur_PC_Gaming.pdf");}
+
+// Graphiques
+const cpuLabels = Array.from(document.querySelectorAll("#tableCPU tr td:first-child")).map(td=>td.innerText).slice(1);
+const cpuFPS = Array.from(document.querySelectorAll("#tableCPU tr td:nth-child(5)")).map(td=>parseInt(td.innerText)).slice(1);
+new Chart(document.getElementById('cpuChart'),{type:'bar',data:{labels:cpuLabels,datasets:[{label:'FPS 1080p',data:cpuFPS,backgroundColor:'rgba(75, 192, 192, 0.7)'}]},options:{responsive:true,scales:{y:{beginAtZero:true}}}});
+
+const gpuLabels = Array.from(document.querySelectorAll("#tableGPU tr td:first-child")).map(td=>td.innerText).slice(1);
+const gpuFPS = Array.from(document.querySelectorAll("#tableGPU tr td:nth-child(5)")).map(td=>parseInt(td.innerText)).slice(1);
+new Chart(document.getElementById('gpuChart'),{type:'bar',data:{labels:gpuLabels,datasets:[{label:'FPS 1440p',data:gpuFPS,backgroundColor:'rgba(255, 99, 132, 0.7)'}]},options:{responsive:true,scales:{y:{beginAtZero:true}}}});
+
+const ramLabels = Array.from(document.querySelectorAll("#tableRAM tr td:first-child")).map(td=>td.innerText).slice(1);
+const ramSpeed = Array.from(document.querySelectorAll("#tableRAM tr td:nth-child(3)")).map(td=>parseInt(td.innerText)).slice(1);
+new Chart(document.getElementById('ramChart'),{type:'bar',data:{labels:ramLabels,datasets:[{label:'Vitesse MHz',data:ramSpeed,backgroundColor:'rgba(153, 102, 255, 0.7)'}]},options:{responsive:true,scales:{y:{beginAtZero:true}}}});
+
+// Mode clair/sombre
+(function(){const h=new Date().getHours();document.body.classList.add((h>=19||h<7)?"dark":"light");})();
+</script>
+</body>
+</html>
